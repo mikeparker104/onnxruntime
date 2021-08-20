@@ -31,7 +31,7 @@ jobs:
     pool: ${{ parameters.PoolName }}
   ${{ if eq(parameters.UsePublicHostedPool, true) }}:
     pool: 
-        image: ${{ parameters.PoolName }}
+        vmImage: ${{ parameters.PoolName }}
   steps:
   - checkout: self
     clean: true
