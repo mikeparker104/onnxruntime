@@ -27,7 +27,8 @@ parameters:
 jobs:
 - job: Test_${{ parameters.ArtifactName }}_${{ parameters.JobNameSuffix }}
   displayName: Test Python Package ${{ parameters.OrtPythonPackageName }} on ${{ parameters.PoolName }}
-  breakCodesignValidationInjection: false
+  variables:
+    breakCodesignValidationInjection: false
   dependsOn:
     ${{ parameters.UpstreamJob }}
   workspace:
