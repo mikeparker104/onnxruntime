@@ -27,11 +27,11 @@ parameters:
 jobs:
 - job: Test_${{ parameters.ArtifactName }}_${{ parameters.JobNameSuffix }}
   displayName: Test Python Package ${{ parameters.ArtifactName }} on ${{ parameters.PoolName }}
-  pool:
-- ${{ if eq(parameters.UsePublicHostedPool, false) }}:
-    name: ${{ parameters.PoolName }}
-- ${{ if eq(parameters.UsePublicHostedPool, true) }}:
-    image: ${{ parameters.PoolName }}
+  - ${{ if eq(parameters.UsePublicHostedPool, false) }}:
+    pool: ${{ parameters.PoolName }}
+  - ${{ if eq(parameters.UsePublicHostedPool, true) }}:
+    pool: 
+        image: ${{ parameters.PoolName }}
   steps:
   - checkout: self
     clean: true
