@@ -70,7 +70,7 @@ stages:
             ONNXRUNTIME_BUILD_CMD: '--enable_pybind'
       variables:
         CIBW_ENVIRONMENT: CFLAGS='$(ONNXRUNTIME_CFLAGS)' CXXFLAGS='$(ONNXRUNTIME_CXXFLAGS)' NIGHTLY_BUILD='$(NIGHTLY_BUILD)' BUILD_ID='$(Build.BuildId)' ONNXRUNTIME_BUILD_CMD='--enable_pybind'
-        CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6, <3.10"
+        CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6, <3.11"
         CIBW_MANYLINUX_X86_64_IMAGE: onnxruntimecpubuild_x86_64
         CIBW_MANYLINUX_AARCH64_IMAGE: onnxruntimecpubuild_aarch64
         CIBW_MANYLINUX_PYPY_X86_64_IMAGE: onnxruntimecpubuild_x86_64
@@ -116,8 +116,8 @@ stages:
         CIBW_ARCHS: x86_64
         ONNXRUNTIME_CFLAGS: '-Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -fstack-clash-protection -fcf-protection -O3 -Wl,--strip-all'
         ONNXRUNTIME_CXXFLAGS: '-Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -fstack-clash-protection -fcf-protection -O3 -Wl,--strip-all'
-        CIBW_ENVIRONMENT: CFLAGS='$(ONNXRUNTIME_CFLAGS)' CXXFLAGS='$(ONNXRUNTIME_CXXFLAGS)' NIGHTLY_BUILD='$(NIGHTLY_BUILD)' BUILD_ID='$(Build.BuildId)' ONNXRUNTIME_BUILD_CMD='--enable_pybind --enable_lto'
-        CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6, <3.10"
+        CIBW_ENVIRONMENT: CFLAGS='$(ONNXRUNTIME_CFLAGS)' CXXFLAGS='$(ONNXRUNTIME_CXXFLAGS)' NIGHTLY_BUILD='$(NIGHTLY_BUILD)' BUILD_ID='$(Build.BuildId)' ONNXRUNTIME_BUILD_CMD='--enable_pybind --enable_lto' AUDITWHEEL_POLICY=manylinux_2_27 AUDITWHEEL_PLAT=manylinux_2_27_x86_64
+        CIBW_PROJECT_REQUIRES_PYTHON: ">=3.6, <3.11"
         CIBW_MANYLINUX_X86_64_IMAGE: onnxruntimecpucentos8build_x86_64
         CIBW_MANYLINUX_PYPY_X86_64_IMAGE: onnxruntimecpucentos8build_x86_64
         CIBW_SKIP: pp*-manylinux_aarch64 cp310-manylinux2014_aarch64

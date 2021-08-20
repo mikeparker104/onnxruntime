@@ -11,7 +11,8 @@ FOR /R %%i IN (*.nupkg) do (
        mkdir runtimes\win10-arm\native
        mkdir runtimes\win10-arm64\native
        mkdir runtimes\linux-x64\native
-       mkdir runtimes\osx-x64\native
+	   mkdir runtimes\linux-aarch64\native
+       mkdir runtimes\osx.10.14-x64\native
        move onnxruntime-win-x86\lib\onnxruntime.dll runtimes\win-x86\native\onnxruntime.dll
        move onnxruntime-win-x86\lib\onnxruntime.lib runtimes\win-x86\native\onnxruntime.lib
        move onnxruntime-win-x86\lib\onnxruntime.pdb runtimes\win-x86\native\onnxruntime.pdb
