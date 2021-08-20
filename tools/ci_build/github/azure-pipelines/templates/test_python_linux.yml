@@ -11,13 +11,18 @@ parameters:
   displayName: PoolName
   type: string
 
+- name: JobNameSuffix
+  displayName: JobNameSuffix
+  type: string
+  default: '1'
+
 #- name: UpstreamJob
 #displayName: Job Name
   #type: string
 #onnxruntime_linux_cpu_x86_64
 jobs:
-- job: Test_${{ parameters.ArtifactName }}
-  displayName: Agent job 1
+- job: Test_${{ parameters.ArtifactName }}_${{ parameters.JobNameSuffix }}
+  displayName: Test Python Package ${{ parameters.ArtifactName }} on ${{ parameters.PoolName }}
   pool:
     name: ${{ parameters.PoolName }}
   steps:
