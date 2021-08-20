@@ -15,7 +15,8 @@ jobs:
   parameters:
     ArtifactName: onnxruntime_linux_gpu_x86_64
     OrtPythonPackageName: ort_nightly_gpu
-    PoolName: Linux-CPU
+    PoolName: ubuntu-20.04	
+    UsePublicHostedPool: true
     JobNameSuffix: '2'
 
 - template: templates/test_python_linux.yml
