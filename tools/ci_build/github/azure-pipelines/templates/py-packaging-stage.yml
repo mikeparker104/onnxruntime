@@ -952,7 +952,7 @@ stages:
           condition: 'succeeded'
 
   - ${{ if eq(parameters.enable_linux_cpu, true) }}:
-    - template: templates/test_python_linux.yml
+    - template: test_python_linux.yml
       parameters:
         ArtifactName: onnxruntime_linux_cpu_x86_64
         OrtPythonPackageName: onnxruntime
@@ -960,7 +960,7 @@ stages:
         UpstreamJob: Linux_CPU_py_Wheels
 
   - ${{ if eq(parameters.enable_linux_gpu, true) }}:
-    - template: templates/test_python_linux.yml
+    - template: test_python_linux.yml
       parameters:
         ArtifactName: onnxruntime_linux_gpu_x86_64
         OrtPythonPackageName: onnxruntime_gpu
@@ -968,7 +968,7 @@ stages:
         UpstreamJob: Linux_py_GPU_Wheels
     
     # The following one doesn't work, need fixes
-    # - template: templates/test_python_linux.yml
+    # - template: test_python_linux.yml
       # parameters:
         # ArtifactName: onnxruntime_linux_gpu_x86_64
         # OrtPythonPackageName: onnxruntime_gpu
@@ -977,7 +977,7 @@ stages:
         # JobNameSuffix: '2'
 
   - ${{ if eq(parameters.enable_mac_cpu, true) }}:
-    - template: templates/test_python_linux.yml
+    - template: test_python_linux.yml
       parameters:
         ArtifactName: onnxruntime_mac
         OrtPythonPackageName: onnxruntime
