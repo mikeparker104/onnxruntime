@@ -1,0 +1,92 @@
+- name: ArtifactName
+  displayName: Artifact Name
+  type: string
+
+- name: OrtPythonPackageName
+  displayName: Ort Python Package Name
+  type: string
+
+- name: PoolName
+  displayName: PoolName
+  type: string
+
+#- name: UpstreamJob
+#displayName: Job Name
+  #type: string
+#onnxruntime_linux_cpu_x86_64
+  
+- job: Test_${{ parameters.ArtifactName }}
+  displayName: Agent job 1
+  pool:
+    name: ${{ parameters.PoolName }}
+  steps:
+  - checkout: self
+    clean: true
+  - task: DownloadPipelineArtifact@2
+    displayName: Download Pipeline Artifact
+    inputs:
+      source: specific
+      project: 530acbc4-21bc-487d-8cd8-348ff451d2ff
+      pipeline: 841
+      runVersion: specific
+      runId: 170167
+      artifact: ${{ parameters.ArtifactName }}
+      patterns: '**/*.whl'
+      path: $(Build.BinariesDirectory)/${{ parameters.OrtPythonPackageName }}
+  - task: Bash@3
+    displayName: Install Protobuf
+    inputs:
+      targetType: inline
+      script: >2
+          set -e -x
+          aria2c -q https://github.com/protocolbuffers/protobuf/archive/v3.16.0.tar.gz
+          ls
+          mkdir pb
+          tar --strip=1 -xf protobuf-3.16.0.tar.gz -C pb
+          cd pb
+          cmake ./cmake -DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory)/protobuf -DCMAKE_INSTALL_SYSCONFDIR=/etc -DCMAKE_POSITION_INDEPENDENT_CODE=ON -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Relwithdebinfo
+          make -j$(getconf _NPROCESSORS_ONLN)
+          make install
+
+          cp $(Build.SourcesDirectory)/onnxruntime/test/testdata/onnx_backend_test_series_filters.jsonc $(Build.SourcesDirectory)/onnxruntime/test/python/testdata
+      workingDirectory: $(Build.BinariesDirectory)
+      noProfile: false
+      noRc: false
+  - task: UsePythonVersion@0
+    name: ORT
+    displayName: Use Python 3.6.x
+    inputs:
+      versionSpec: 3.6.x
+      addToPath: false
+  - task: Bash@3
+    displayName: Run Python test
+    inputs:
+      targetType: inline
+      script: >2-
+          export PATH=$(ORT.pythonLocation)/bin:$(Build.BinariesDirectory)/protobuf/bin:$PATH
+          pip3 install -r $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker/inference/x86_64/default/cpu/scripts/requirements.txt
+          pip3 install pytest
+          pip3 install ${{ parameters.OrtPythonPackageName }} --no-index --find-links  file:///$(Build.BinariesDirectory)/${{ parameters.OrtPythonPackageName }}
+          python3 $(Build.SourcesDirectory)/onnxruntime/test/python/onnx_backend_test_series.py
+      workingDirectory: $(Build.BinariesDirectory)
+      noProfile: false
+      noRc: false
+  - task: UsePythonVersion@0
+    name: ORT37
+    displayName: Use Python 3.7.x
+    inputs:
+      versionSpec: 3.7.x
+      addToPath: false
+  - task: Bash@3
+    displayName: Run Python test
+    inputs:
+      targetType: inline
+      script: >2-
+          export PATH=$(ORT37.pythonLocation)/bin:$(Build.BinariesDirectory)/protobuf/bin:$PATH
+          pip3 install -r $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker/inference/x86_64/default/cpu/scripts/requirements.txt
+          pip3 install pytest
+          pip3 install ${{ parameters.OrtPythonPackageName }} --no-index --find-links  file:///$(Build.BinariesDirectory)/${{ parameters.OrtPythonPackageName }}
+          python3 $(Build.SourcesDirectory)/onnxruntime/test/python/onnx_backend_test_series.py
+      workingDirectory: $(Build.BinariesDirectory)
+      noProfile: false
+      noRc: false
