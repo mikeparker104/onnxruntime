@@ -53,7 +53,8 @@ jobs:
   pool: 'Win-CPU-2021'
   condition: and (succeeded(), and (${{ parameters.PublishingNuget }}, eq(variables['Build.SourceBranch'], 'refs/heads/master')))
   steps:
-
+  - checkout: self
+    submodules: false
   - template: set-version-number-variables-step.yml
 
   - task: DownloadPipelineArtifact@0
@@ -65,14 +66,15 @@ jobs:
       project: '530acbc4-21bc-487d-8cd8-348ff451d2ff'
       definition: 940
       buildVersionToDownload: specific
-      pipelineId: 170251
+      pipelineId: 170320
 
   - task: CmdLine@2
     displayName: 'Post binary sizes to the dashboard database using command line'
     inputs:
       script: |
+          python.exe -m pip install azure-kusto-data[pandas] azure-kusto-ingest[pandas]
           echo changing directory to artifact download path
-          pushd "${{ parameters.downloadPath }}"
+          cd $(Build.BinariesDirectory)/nuget-artifact/final-package
           echo processing nupkg
           SETLOCAL EnableDelayedExpansion   
           FOR /R %%i IN (*.nupkg) do (
@@ -83,63 +85,21 @@ jobs:
             echo copied to zip
             echo listing lib files in the zip 
             REM use a single .csv file to put the data 
-            echo os,arch,build_config,size > binary_size_data.txt
-            7z.exe l -slt %%~ni.zip runtimes\linux-x64\native\libonnxruntime.so | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo linux,x64,${{ parameters.buildVariant }},%%a >> binary_size_data.txt
-            7z.exe l -slt %%~ni.zip runtimes\osx-x64\native\libonnxruntime.dylib | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo osx,x64,${{ parameters.buildVariant }},%%a >> binary_size_data.txt
-            7z.exe l -slt %%~ni.zip runtimes\win-x64\native\onnxruntime.dll | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo win,x64,${{ parameters.buildVariant }},%%a >> binary_size_data.txt
-            7z.exe l -slt %%~ni.zip runtimes\win-x86\native\onnxruntime.dll | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo win,x86,${{ parameters.buildVariant }},%%a >> binary_size_data.txt
-            echo calling python script to post to database
-            python.exe $(Build.SourcesDirectory)\tools\ci_build\github\windows\post_binary_sizes_to_dashboard.py --commit_hash=${{ parameters.gitCommitHash }} --size_data_file=binary_size_data.txt --build_project=Lotus --build_id=$(Build.BuildId)
+            echo os,arch,build_config,size > $(Build.BinariesDirectory)\binary_size_data.txt
+            7z.exe l -slt %%~ni.zip runtimes\linux-x64\native\libonnxruntime.so | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo linux,x64,${{ parameters.buildVariant }},%%a >> $(Build.BinariesDirectory)\binary_size_data.txt
+            7z.exe l -slt %%~ni.zip runtimes\linux-aarch64\native\libonnxruntime.so | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo linux,aarch64,${{ parameters.buildVariant }},%%a >> $(Build.BinariesDirectory)\binary_size_data.txt
+            7z.exe l -slt %%~ni.zip runtimes\osx.10.14-x64\native\libonnxruntime.dylib | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo osx,x64,${{ parameters.buildVariant }},%%a >> $(Build.BinariesDirectory)\binary_size_data.txt
+            7z.exe l -slt %%~ni.zip runtimes\win-x64\native\onnxruntime.dll | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo win,x64,${{ parameters.buildVariant }},%%a >> $(Build.BinariesDirectory)\binary_size_data.txt
+            7z.exe l -slt %%~ni.zip runtimes\win-x86\native\onnxruntime.dll | findstr /R /C:"^Size = [0-9]*" | for /F "tokens=3" %%a  in ('more') do if not "%%a" == "" echo win,x86,${{ parameters.buildVariant }},%%a >> $(Build.BinariesDirectory)\binary_size_data.txt            
              )
            ) 
-       
-  - template: ../nuget/templates/get-nuget-package-version-as-variable.yml
-    parameters:
-      packageFolder: '$(Build.BinariesDirectory)/nuget-artifact/final-package'
-
-  - task: PowerShell@2
-    displayName: 'Get Current Date'
+  - task: AzureCLI@2
+    displayName: 'Azure CLI'
     inputs:
-      targetType: 'inline'
-      script: |
-          $date = $(Get-Date -Format "yyyy-MM-dd")
-          Write-Host "##vso[task.setvariable variable=CurrentDate]$date"
+      azureSubscription: AIInfraBuildOnnxRuntimeOSS
+      scriptLocation: inlineScript
+      scriptType: batch
+      inlineScript: |
+        python.exe $(Build.SourcesDirectory)\tools\ci_build\github\windows\post_binary_sizes_to_dashboard.py --commit_hash=$(Build.SourceVersion) --size_data_file=binary_size_data.txt --build_project=Lotus --build_id=$(Build.BuildId)
+      workingDirectory: '$(Build.BinariesDirectory)'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Copy Signed Native NuGet Package to Internal NuGet Feed'
-    condition: ne(variables['IsReleaseBuild'], 'true') # release build has a different package naming scheme
-    inputs:
-      command: 'push'
-      searchPatternPush: '$(Build.BinariesDirectory)/nuget-artifact/final-package/${{ parameters.OrtNugetPackageId }}.$(NuGetPackageVersionNumber).nupkg'
-      feedPublish: 'OnnxRuntime'
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Copy Signed Managed NuGet Package to Internal NuGet Feed'
-    condition: ne(variables['IsReleaseBuild'], 'true') # release build has a different package naming scheme
-    inputs:
-      command: 'push'
-      searchPatternPush: '$(Build.BinariesDirectory)/nuget-artifact/final-package/Microsoft.ML.OnnxRuntime.Managed.$(NuGetPackageVersionNumber).nupkg'
-      feedPublish: 'OnnxRuntime'
-
-  - task: NuGetCommand@2
-    displayName: 'Copy Signed Native NuGet Package to ORT-NIGHTLY'
-    condition: ne(variables['IsReleaseBuild'], 'true') # release build has a different package naming scheme
-    inputs:
-      command: 'push'
-      packagesToPush: '$(Build.BinariesDirectory)/nuget-artifact/final-package/${{ parameters.OrtNugetPackageId }}.$(NuGetPackageVersionNumber).nupkg'
-      publishVstsFeed: '2692857e-05ef-43b4-ba9c-ccf1c22c437c/7982ae20-ed19-4a35-a362-a96ac99897b7'
-
-  - task: NuGetCommand@2
-    displayName: 'Copy Signed Managed NuGet Package to ORT-NIGHTLY'
-    condition: ne(variables['IsReleaseBuild'], 'true') # release build has a different package naming scheme
-    inputs:
-      command: 'push'
-      packagesToPush: '$(Build.BinariesDirectory)/nuget-artifact/final-package/Microsoft.ML.OnnxRuntime.Managed.$(NuGetPackageVersionNumber).nupkg'
-      publishVstsFeed: '2692857e-05ef-43b4-ba9c-ccf1c22c437c/7982ae20-ed19-4a35-a362-a96ac99897b7'
-
-  - template: component-governance-component-detection-steps.yml
-    parameters :
-      condition : 'succeeded'
-  - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
-    displayName: 'Clean Agent Directories'
-    condition: always()

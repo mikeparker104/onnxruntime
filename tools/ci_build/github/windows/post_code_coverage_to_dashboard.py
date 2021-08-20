@@ -11,6 +11,7 @@
 import argparse
 import json
 import sys
+import os
 import datetime
 # ingest from dataframe
 import pandas
@@ -70,14 +71,15 @@ def write_to_db(coverage_data, args):
     client = QueuedIngestClient(kcsb)
     fields = ["UploadTime", "CommitId", "Coverage", "LinesCovered", "TotalLines", "OS", "Arch", "BuildConfig",
               "ReportURL", "Branch"]
-    now_str = datetime.datetime.now() .strftime("%Y-%m-%d %H:%M:%S")
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    branch_name = os.environ.get('BUILD_SOURCEBRANCHNAME', 'master')
     rows = [[now_str,  args.commit_hash, coverage_data['coverage'],
              coverage_data['lines_covered'],
              coverage_data['lines_valid'], args.os.lower(),
              args.arch.lower(),
              args.build_config.lower(),
              args.report_url.lower(),
-             args.branch.lower()]]
+             branch_name.lower()]]
     ingestion_props = IngestionProperties(
       database="powerbi",
       table="test_coverage",
