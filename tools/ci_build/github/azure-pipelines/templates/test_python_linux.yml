@@ -15,7 +15,7 @@ parameters:
 #displayName: Job Name
   #type: string
 #onnxruntime_linux_cpu_x86_64
-  
+jobs:
 - job: Test_${{ parameters.ArtifactName }}
   displayName: Agent job 1
   pool:
