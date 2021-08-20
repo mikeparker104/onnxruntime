@@ -3,7 +3,7 @@
 parameters:
 - name: buildConfig  
   type: string
-  default: 'RelWithDebInfo'
+  default: 'Release'
 
 - name: artifactName  
   type: string
@@ -44,5 +44,5 @@ steps:
 
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/${{parameters.artifactName}}.tgz'
+        targetPath: '$(Build.ArtifactStagingDirectory)'
         artifactName: '${{parameters.artifactNameNoVersionString}}'
