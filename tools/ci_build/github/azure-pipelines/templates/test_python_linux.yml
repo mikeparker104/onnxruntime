@@ -26,7 +26,7 @@ parameters:
 #onnxruntime_linux_cpu_x86_64
 jobs:
 - job: Test_${{ parameters.ArtifactName }}_${{ parameters.JobNameSuffix }}
-  displayName: Test Python Package ${{ parameters.ArtifactName }} on ${{ parameters.PoolName }}
+  displayName: Test Python Package ${{ parameters.OrtPythonPackageName }} on ${{ parameters.PoolName }}
   ${{ if eq(parameters.UsePublicHostedPool, false) }}:
     pool: ${{ parameters.PoolName }}
   ${{ if eq(parameters.UsePublicHostedPool, true) }}:
