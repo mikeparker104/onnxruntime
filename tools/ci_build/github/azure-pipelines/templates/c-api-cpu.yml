@@ -473,6 +473,8 @@ jobs:
 
   - task: BinSkim@4
     displayName: 'Run BinSkim'
+    inputs:
+      AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)\**.dll;$(Build.ArtifactStagingDirectory)\**.exe;$(Build.ArtifactStagingDirectory)\**.so'
 
   - task: RoslynAnalyzers@2
     displayName: 'Run Roslyn Analyzers'
