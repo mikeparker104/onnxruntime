@@ -15,6 +15,10 @@ parameters:
   displayName: JobNameSuffix
   type: string
   default: '1'
+  
+- name: UsePublicHostedPool
+  type: boolean
+  default: false
 
 #- name: UpstreamJob
 #displayName: Job Name
@@ -24,7 +28,10 @@ jobs:
 - job: Test_${{ parameters.ArtifactName }}_${{ parameters.JobNameSuffix }}
   displayName: Test Python Package ${{ parameters.ArtifactName }} on ${{ parameters.PoolName }}
   pool:
+- ${{ if eq(parameters.UsePublicHostedPool, false) }}:
     name: ${{ parameters.PoolName }}
+- ${{ if eq(parameters.UsePublicHostedPool, true) }}:
+    image: ${{ parameters.PoolName }}
   steps:
   - checkout: self
     clean: true
