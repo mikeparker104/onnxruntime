@@ -409,9 +409,10 @@ jobs:
       arguments: '--configuration RelWithDebInfo -p:Platform="Any CPU" -p:OnnxRuntimeBuildDirectory="$(Build.BinariesDirectory)" -p:OrtPackageId=Microsoft.ML.OnnxRuntime.Gpu'
       workingDirectory: '$(Build.SourcesDirectory)\csharp'
 
-  #TODO: enable binskim
-  #- task: BinSkim@4
-  #  displayName: 'Run BinSkim'
+  - task: BinSkim@4
+    displayName: 'Run BinSkim'
+    inputs:
+      AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)\**.dll;$(Build.ArtifactStagingDirectory)\**.exe;$(Build.ArtifactStagingDirectory)\**.so'
 
   - task: RoslynAnalyzers@2
     displayName: 'Run Roslyn Analyzers'
