@@ -128,8 +128,8 @@ stages:
 
       - template: get-docker-image-steps.yml
         parameters:
-          Dockerfile: tools/ci_build/github/linux/docker/inference/$(CIBW_ARCHS)/python/cpu/Dockerfile
-          Context: tools/ci_build/github/linux/docker/inference/$(CIBW_ARCHS)/python/cpu
+          Dockerfile: tools/ci_build/github/linux/docker/inference/$(CIBW_ARCHS)/python/centos8cpu/Dockerfile
+          Context: tools/ci_build/github/linux/docker/inference/$(CIBW_ARCHS)/python/centos8cpu
           Repository: onnxruntimecpucentos8build_$(CIBW_ARCHS)
           DockerBuildArgs: "--network=host --build-arg POLICY=manylinux_2_28 --build-arg PLATFORM=x86_64 --build-arg BASEIMAGE=centos:8 --build-arg DEVTOOLSET_ROOTPATH=/opt/rh/gcc-toolset-10/root --build-arg PREPEND_PATH=/opt/rh/gcc-toolset-10/root/usr/bin: --build-arg LD_LIBRARY_PATH_ARG=/opt/rh/gcc-toolset-10/root/usr/lib64:/opt/rh/gcc-toolset-10/root/usr/lib:/opt/rh/gcc-toolset-10/root/usr/lib64/dyninst:/opt/rh/gcc-toolset-10/root/usr/lib/dyninst:/usr/local/lib64"
 
@@ -951,93 +951,36 @@ stages:
         parameters:
           condition: 'succeeded'
 
-    - job: Test_Linux_Python
-      dependsOn:
-      - Linux_CPU_py_Wheels
-      pool:
-        name: Linux-CPU
-      steps:
-      - checkout: self
-        clean: true
-      - task: DownloadPipelineArtifact@2
-        displayName: Download Pipeline Artifact
-        inputs:
-          artifact: onnxruntime_linux_cpu_x86_64
-          patterns: '**/*.whl'
-          path: $(Build.BinariesDirectory)/ort_nightly
-      - task: Bash@3
-        displayName: Install Protobuf
-        inputs:
-          targetType: inline
-          script: >2
-              set -e -x
-              aria2c -q https://github.com/protocolbuffers/protobuf/archive/v3.16.0.tar.gz
-              ls
-              mkdir pb
-              tar --strip=1 -xf protobuf-3.16.0.tar.gz -C pb
-              cd pb
-              cmake ./cmake -DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory)/protobuf -DCMAKE_INSTALL_SYSCONFDIR=/etc -DCMAKE_POSITION_INDEPENDENT_CODE=ON -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Relwithdebinfo
-              make -j$(getconf _NPROCESSORS_ONLN)
-              make install
+  - ${{ if eq(parameters.enable_linux_cpu, true) }}:
+    - template: templates/test_python_linux.yml
+      parameters:
+        ArtifactName: onnxruntime_linux_cpu_x86_64
+        OrtPythonPackageName: ort_nightly
+        PoolName: Linux-CPU
+        UpstreamJob: Linux_CPU_py_Wheels
 
-              cp $(Build.SourcesDirectory)/onnxruntime/test/testdata/onnx_backend_test_series_filters.jsonc $(Build.SourcesDirectory)/onnxruntime/test/python/testdata
-          workingDirectory: $(Build.BinariesDirectory)
-          noProfile: false
-          noRc: false
-      - task: UsePythonVersion@0
-        name: ORT
-        displayName: Use Python 3.6.x
-        inputs:
-          versionSpec: 3.6.x
-          addToPath: false
-      - task: Bash@3
-        displayName: Run Python test
-        inputs:
-          targetType: inline
-          script: >2-
-              export PATH=$(ORT.pythonLocation)/bin:$(Build.BinariesDirectory)/protobuf/bin:$PATH
-              pip3 install -r $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker/inference/x86_64/default/cpu/scripts/requirements.txt
-              pip3 install pytest
-              pip3 install ort_nightly --no-index --find-links  file:///$(Build.BinariesDirectory)/ort_nightly
-              python3 $(Build.SourcesDirectory)/onnxruntime/test/python/onnx_backend_test_series.py
-          workingDirectory: $(Build.BinariesDirectory)
-          noProfile: false
-          noRc: false
-      - task: UsePythonVersion@0
-        name: ORT38
-        displayName: Use Python 3.8.x
-        inputs:
-          versionSpec: 3.8.x
-          addToPath: false
-      - task: Bash@3
-        displayName: Run Python test
-        inputs:
-          targetType: inline
-          script: >2-
-              export PATH=$(ORT38.pythonLocation)/bin:$(Build.BinariesDirectory)/protobuf/bin:$PATH
-              pip3 install -r $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker/inference/x86_64/default/cpu/scripts/requirements.txt
-              pip3 install pytest
-              pip3 install ort_nightly --no-index --find-links  file:///$(Build.BinariesDirectory)/ort_nightly
-              python3 $(Build.SourcesDirectory)/onnxruntime/test/python/onnx_backend_test_series.py
-          workingDirectory: $(Build.BinariesDirectory)
-          noProfile: false
-          noRc: false
-      - task: UsePythonVersion@0
-        name: ORT39
-        displayName: Use Python 3.9.x
-        inputs:
-          versionSpec: 3.9.x
-          addToPath: false
-      - task: Bash@3
-        displayName: Run Python test
-        inputs:
-          targetType: inline
-          script: >2-
-              export PATH=$(ORT39.pythonLocation)/bin:$(Build.BinariesDirectory)/protobuf/bin:$PATH
-              pip3 install -r $(Build.SourcesDirectory)/tools/ci_build/github/linux/docker/inference/x86_64/default/cpu/scripts/requirements.txt
-              pip3 install pytest
-              pip3 install ort_nightly --no-index --find-links  file:///$(Build.BinariesDirectory)/ort_nightly
-              python3 $(Build.SourcesDirectory)/onnxruntime/test/python/onnx_backend_test_series.py
-          workingDirectory: $(Build.BinariesDirectory)
-          noProfile: false
-          noRc: false
+  - ${{ if eq(parameters.enable_linux_gpu, true) }}:
+    - template: templates/test_python_linux.yml
+      parameters:
+        ArtifactName: onnxruntime_linux_gpu_x86_64
+        OrtPythonPackageName: ort_nightly_gpu
+        PoolName: Onnxruntime-Linux-GPU
+        UpstreamJob: Linux_py_GPU_Wheels
+    
+    # The following one doesn't work, need fixes
+    # - template: templates/test_python_linux.yml
+      # parameters:
+        # ArtifactName: onnxruntime_linux_gpu_x86_64
+        # OrtPythonPackageName: ort_nightly_gpu
+        # PoolName: ubuntu-20.04	
+        # UsePublicHostedPool: true
+        # JobNameSuffix: '2'
+
+  - ${{ if eq(parameters.enable_mac_cpu, true) }}:
+    - template: templates/test_python_linux.yml
+      parameters:
+        ArtifactName: onnxruntime_mac
+        OrtPythonPackageName: ort_nightly
+        PoolName: macOS-10.15
+        UsePublicHostedPool: true
+        UpstreamJob: MacOS_py_Wheels
