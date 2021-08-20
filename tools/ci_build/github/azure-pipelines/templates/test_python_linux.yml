@@ -27,9 +27,9 @@ parameters:
 jobs:
 - job: Test_${{ parameters.ArtifactName }}_${{ parameters.JobNameSuffix }}
   displayName: Test Python Package ${{ parameters.ArtifactName }} on ${{ parameters.PoolName }}
-  - ${{ if eq(parameters.UsePublicHostedPool, false) }}:
+  ${{ if eq(parameters.UsePublicHostedPool, false) }}:
     pool: ${{ parameters.PoolName }}
-  - ${{ if eq(parameters.UsePublicHostedPool, true) }}:
+  ${{ if eq(parameters.UsePublicHostedPool, true) }}:
     pool: 
         image: ${{ parameters.PoolName }}
   steps:
