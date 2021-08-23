@@ -1,1 +1,0 @@
-namespace Microsoft.ML.OnnxRuntime { }
