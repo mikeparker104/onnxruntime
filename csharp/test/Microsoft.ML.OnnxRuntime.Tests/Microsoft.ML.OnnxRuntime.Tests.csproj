@@ -85,6 +85,11 @@
   </Target>
 
   <ItemGroup>
+    <!-- manually include if we're going to generate in this build. otherwise it's automatically included. -->
+    <Compile Include="$(ProjectDir)\OnnxMl.cs" Condition="!Exists('$(ProjectDir)\OnnxMl.cs')"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="$(NativeBuildOutputDir)\*.dll;$(NativeBuildOutputDir)\*.pdb;$(NativeBuildOutputDir)\*.dylib;$(NativeBuildOutputDir)\libcustom*.so;$(NativeBuildOutputDir)\libcustom*.dylib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Visible>false</Visible>
