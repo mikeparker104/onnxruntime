@@ -253,13 +253,15 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
-        <PackageId>Microsoft.ML.OnnxRuntime.Managed</PackageId>
+        <PackageId Condition="'$(PackageId)' == '' ">Microsoft.ML.OnnxRuntime.Managed</PackageId>
         <Authors>Microsoft</Authors>
         <Description>This package contains ONNX Runtime for .Net platforms</Description>
         <PackageTags>ONNX;ONNX Runtime;Machine Learning</PackageTags>
         <PackageProjectUrl>https://github.com/Microsoft/onnxruntime</PackageProjectUrl>
         <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\OnnxRuntime.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Version)' == '' ">

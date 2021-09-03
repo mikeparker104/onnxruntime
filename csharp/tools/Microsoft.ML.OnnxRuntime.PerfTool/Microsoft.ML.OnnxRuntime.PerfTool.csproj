@@ -83,8 +83,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.13.0" />  
   </ItemGroup>
 
-  <!-- create OnnxMl.cs and add to project -->
-  <Target Name="ProtoGen" BeforeTargets="BeforeBuild" Condition="Exists('$(ProtocExe)')">
+  <Target Condition="Exists('$(ProtocExe)')" Name="ProtoGen" BeforeTargets="Build">
     <Exec Command="$(ProtocExe) -I=$(ProtoSrc) --csharp_out=. $(ProtoSrc)\onnx-ml.proto3" ContinueOnError="false"></Exec>
   </Target>
 
