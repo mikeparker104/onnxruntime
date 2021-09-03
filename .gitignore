@@ -30,12 +30,8 @@ onnxruntime_profile*.json
 /docs/python/inference/examples/*.onnx
 /docs/python/inference/examples/graph.*
 /docs/python/*_LICENSE
-<<<<<<< HEAD
-/LICENSE.txt
-=======
 /csharp/**/LICENSE.txt
 /csharp/**/build_nuget
->>>>>>> 3d66f6064 (Merge from master)
 /csharp/**/obj/
 /csharp/**/bin/
 /csharp/Directory.Build.props
@@ -45,6 +41,8 @@ onnxprofile_profile_test_*.json
 /csharp/packages
 /csharp/src/Microsoft.ML.OnnxRuntime/targets/**/*.targets
 /csharp/src/Microsoft.ML.OnnxRuntime/targets/**/*.props
+/csharp/test/Microsoft.ML.OnnxRuntime.Tests/OnnxMl.cs
+/csharp/tools/Microsoft.ML.OnnxRuntime.PerfTool/OnnxMl.cs
 cmake/external/FeaturizersLibrary/
 # Java specific ignores
 java/gradlew
