@@ -30,7 +30,8 @@ onnxruntime_profile*.json
 /docs/python/inference/examples/*.onnx
 /docs/python/inference/examples/graph.*
 /docs/python/*_LICENSE
-**/LICENSE.txt
+/csharp/**/LICENSE.txt
+/csharp/**/build_nuget
 /csharp/**/obj/
 /csharp/**/bin/
 /csharp/Directory.Build.props
