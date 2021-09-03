@@ -192,13 +192,17 @@ def generate_dependencies(list, package_name, version):
         if include_dml:
             list.append(dml_dependency)
         list.append('</group>')
-        # Support monoandroid11.0
-        list.append('<group targetFramework="monoandroid11.0">')
+        # Support monoandroid10.0
+        list.append('<group targetFramework="monoandroid10.0">')
         list.append('<dependency id="Microsoft.ML.OnnxRuntime.Managed"' + ' version="' + version + '"/>')
+        if include_dml:
+            list.append(dml_dependency)
         list.append('</group>')
         # Support xamarinios10
         list.append('<group targetFramework="xamarinios10">')
         list.append('<dependency id="Microsoft.ML.OnnxRuntime.Managed"' + ' version="' + version + '"/>')
+        if include_dml:
+            list.append(dml_dependency)
         list.append('</group>')
         # Support Native C++
         if include_dml:
@@ -402,7 +406,7 @@ def generate_files(list, args):
             if os.path.exists(os.path.join(args.native_build_path, 'onnxruntime.pdb')):
                 files_list.append('<file src=' + '"' + os.path.join(args.native_build_path, 'onnxruntime.pdb') +
                                   runtimes + ' />')
-    elif is_macos_build: # TODO: Validate this is correct as it has Android and iOS stuff. Is this based on where the package is built?
+    elif is_macos_build:
         files_list.append('<file src=' + '"' + os.path.join(args.native_build_path, 'libs/armeabi-v7a',
                     'libonnxruntime.so') + '" target="runtimes\\android\\native\\armeabi-v7a" />')
         files_list.append('<file src=' + '"' + os.path.join(args.native_build_path, 'libs/arm64-v8a',
@@ -553,18 +557,18 @@ def generate_files(list, args):
         files_list.append('<file src=' + '"' + target_targets + '" target="build\\netstandard2.0" />')
 
         # Process xamarin targets files
-        monoandroid_source_targets = os.path.join(args.sources_path, 'csharp', 'src', 'Microsoft.ML.OnnxRuntime', 'targets', 'monoandroid11.0', 'targets.xml')
-        monoandroid_target_targets = os.path.join(args.sources_path, 'csharp', 'src', 'Microsoft.ML.OnnxRuntime', 'targets', 'monoandroid11.0',
-                                                  args.package_name + '.targets')
+        monoandroid_source_targets = os.path.join(args.sources_path, 'csharp', 'src', 'Microsoft.ML.OnnxRuntime', 'targets', 'monoandroid10.0', 'targets.xml')
+        monoandroid_target_targets = os.path.join(args.sources_path, 'csharp', 'src', 'Microsoft.ML.OnnxRuntime', 'targets', 'monoandroid10.0',
+                                      args.package_name + '.targets')
         os.system(copy_command + ' ' + monoandroid_source_targets + ' ' + monoandroid_target_targets)
 
         xamarinios_source_targets = os.path.join(args.sources_path, 'csharp', 'src', 'Microsoft.ML.OnnxRuntime', 'targets', 'xamarinios10', 'targets.xml')
         xamarinios_target_targets = os.path.join(args.sources_path, 'csharp', 'src', 'Microsoft.ML.OnnxRuntime', 'targets', 'xamarinios10',
-                                                 args.package_name + '.targets')
+                                      args.package_name + '.targets')
         os.system(copy_command + ' ' + xamarinios_source_targets + ' ' + xamarinios_target_targets)
 
-        files_list.append('<file src=' + '"' + monoandroid_target_targets + '" target="build\\monoandroid11.0" />')
-        files_list.append('<file src=' + '"' + monoandroid_target_targets + '" target="buildTransitive\\monoandroid11.0" />')
+        files_list.append('<file src=' + '"' + monoandroid_target_targets + '" target="build\\monoandroid10.0" />')
+        files_list.append('<file src=' + '"' + monoandroid_target_targets + '" target="buildTransitive\\monoandroid10.0" />')
         files_list.append('<file src=' + '"' + xamarinios_target_targets + '" target="build\\xamarinios10" />')
         files_list.append('<file src=' + '"' + xamarinios_target_targets + '" target="buildTransitive\\xamarinios10" />')
 
@@ -600,8 +604,8 @@ def is_macos():
 
 
 def validate_platform():
-    if not(is_windows() or is_linux() or is_macos()):
-        raise Exception('Native Nuget generation is currently supported only on Windows, Linux, and MacOS')
+    if not(is_windows() or is_linux() or is_macos):
+        raise Exception('Native Nuget generation is currently supported only on Windows, Linux, and macos')
 
 
 def validate_execution_provider(execution_provider):
