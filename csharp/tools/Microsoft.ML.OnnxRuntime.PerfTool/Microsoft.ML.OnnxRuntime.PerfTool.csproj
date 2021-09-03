@@ -54,6 +54,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </None>
+    <None Include="$(NativeBuildOutputDir)\onnxruntime.pdb" Condition="'$(IsWindowsBuild)'=='true'And Exists('$(NativeBuildOutputDir)\onnxruntime.pdb')">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
     <None Include="$(NativeBuildOutputDir)\libonnxruntime_providers_*.so" Condition="'$(IsLinuxBuild)'=='true' And Exists('$(NativeBuildOutputDir)\libonnxruntime_providers_shared.so')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
