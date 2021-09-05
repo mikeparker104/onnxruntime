@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Platforms>AnyCPU;x86</Platforms>
-    <OnnxRuntimeCsharpRoot>..\..</OnnxRuntimeCsharpRoot>
+    <OnnxRuntimeCsharpRoot>$(ProjectDir)..\..</OnnxRuntimeCsharpRoot>
     <Configurations>Debug;Release;RelWithDebInfo</Configurations>
     <IsLinuxBuild Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinuxBuild> 
     <IsWindowsBuild Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))' == 'true'">true</IsWindowsBuild> 
@@ -38,7 +38,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Visible>false</Visible>
     </None>
-    <None Include="$(NativeBuildOutputDir)\libonnxruntime.dylib" Condition="'$(IsMacOSBuild)'=='true'">
+    <None Include="$(NativeBuildOutputDir)\libonnxruntime.dylib" Condition="'$(IsMacOSBuild)'=='true' And Exists('$(NativeBuildOutputDir)\libonnxruntime.dylib')">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Visible>false</Visible>
     </None>

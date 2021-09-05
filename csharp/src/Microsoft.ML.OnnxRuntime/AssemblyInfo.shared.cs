@@ -1,5 +1,3 @@
-//[assembly: Microsoft.ML.OnnxRuntime.Preserve]
-
 #if __IOS__
 [assembly: Foundation.LinkerSafe]
 #elif __ANDROID__
