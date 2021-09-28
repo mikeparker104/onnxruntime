@@ -35,4 +35,3 @@ class QDQDirect8BitOp(QDQOperatorBase):
 
     def quantize(self):
         self.quantizer.quantize_tensor(self.node.input[0])
-        self.quantizer.quantize_tensor(self.node.output[0])

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <LangVersion>latestmajor</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>latestmajor</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\Models\FasterRCNN-10.onnx" Condition="Exists('..\..\Models\FasterRCNN-10.onnx')">
+      <Link>faster_rcnn.onnx</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="SixLabors.ImageSharp" />
+    <None Remove="Microsoft.ML.OnnxRuntime.Managed" />
+    <None Remove="SixLabors.ImageSharp.Drawing" />
+    <None Remove="SkiaSharp" />
+    <None Remove="Xamarin.Essentials" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.9.0-dev-20210920-1201-1c2f4e05a" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
+    <PackageReference Include="SkiaSharp" Version="2.80.3" />
+  </ItemGroup>
+</Project>
