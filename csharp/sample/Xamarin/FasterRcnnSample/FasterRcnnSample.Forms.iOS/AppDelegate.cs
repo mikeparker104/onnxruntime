@@ -19,7 +19,11 @@ namespace FasterRcnnSample.Forms.iOS
         //
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
-            SessionOptionsContainer.Register(nameof(SessionOptionMode.Platform), (sessionOptions) => sessionOptions.AppendExecutionProvider_CoreML(CoreMLFlags.COREML_FLAG_ONLY_ENABLE_DEVICE_WITH_ANE));
+            SessionOptionsContainer.Register(nameof(SessionOptionMode.Platform), (sessionOptions) =>
+            {
+                sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                sessionOptions.AppendExecutionProvider_CoreML(CoreMLFlags.COREML_FLAG_ONLY_ENABLE_DEVICE_WITH_ANE);
+            });
 
             global::Xamarin.Forms.Forms.Init();
             LoadApplication(new App());

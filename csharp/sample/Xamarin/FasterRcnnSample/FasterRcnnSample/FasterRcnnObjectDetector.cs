@@ -18,8 +18,18 @@ namespace FasterRcnnSample
         byte[] _model;
         Task _initializeTask;
         SkiaSharpImageProcessor _skiaSharpProcessor;
+        InferenceSession _defaultSession;
+        InferenceSession _platformSession;
 
         SkiaSharpImageProcessor SkiaSharpProcessor => _skiaSharpProcessor ??= new SkiaSharpImageProcessor();
+
+        public Task InitializeAsync(byte[] warmupImage = null)
+        {
+            if (_initializeTask == null || _initializeTask.IsFaulted)
+                _initializeTask = InitializeTask(warmupImage);
+
+            return _initializeTask;
+        }
 
         public async Task<byte[]> GetImageWithObjectsAsync(byte[] sourceImage, SessionOptionMode sessionOptionMode = SessionOptionMode.Default)
         {
@@ -35,17 +45,12 @@ namespace FasterRcnnSample
         }
 
         List<Prediction> GetPredictions(Tensor<float> input, SessionOptionMode sessionOptionsMode = SessionOptionMode.Default)
-        {
+        {            
             // Setup inputs and outputs
             var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor("image", input) };
 
             // Run inference
-            using var options = new SessionOptions { GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL };
-
-            if (sessionOptionsMode == SessionOptionMode.Platform)
-                options.ApplyConfiguration(nameof(SessionOptionMode.Platform));
-
-            using var session = new InferenceSession(_model, options);
+            var session = sessionOptionsMode == SessionOptionMode.Default ? _defaultSession : _platformSession;
             using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = session.Run(inputs);
 
             // Postprocess to get predictions
@@ -74,12 +79,21 @@ namespace FasterRcnnSample
             return predictions;
         }
 
-        Task InitializeAsync()
+        async Task InitializeTask(byte[] warmupImage = null)
         {
-            if (_initializeTask == null || _initializeTask.IsFaulted)
-                _initializeTask = Task.Run(() => Initialize());
+            await Task.Run(() => Initialize()).ConfigureAwait(false);
 
-            return _initializeTask;
+            if (warmupImage == null)
+                return;
+
+            using var preprocessedImage = await Task.Run(() => SkiaSharpProcessor.PreprocessSourceImage(warmupImage)).ConfigureAwait(false);
+            var tensor = await Task.Run(() => SkiaSharpProcessor.GetTensorForImage(preprocessedImage)).ConfigureAwait(false);
+
+            await Task.WhenAll(new Task[]
+            {
+                Task.Run(() => GetPredictions(tensor, SessionOptionMode.Default)),
+                Task.Run(() => GetPredictions(tensor, SessionOptionMode.Platform))
+            });
         }
 
         void Initialize()
@@ -91,6 +105,9 @@ namespace FasterRcnnSample
 
             stream.CopyTo(memoryStream);
             _model = memoryStream.ToArray();
+
+            _defaultSession = new InferenceSession(_model, new SessionOptions { GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL });
+            _platformSession = new InferenceSession(_model, SessionOptionsContainer.Create(nameof(SessionOptionMode.Platform)));
         }
     }
 }

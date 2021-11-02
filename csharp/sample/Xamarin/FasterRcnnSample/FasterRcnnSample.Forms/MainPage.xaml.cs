@@ -17,7 +17,9 @@ namespace FasterRcnnSample.Forms
 
     public partial class MainPage : ContentPage
     {
+        Task<byte[]> _getSampleImageTask;
         FasterRcnnObjectDetector _objectDetector;
+
         FasterRcnnObjectDetector ObjectDetector => _objectDetector ??= new FasterRcnnObjectDetector();
 
         public MainPage()
@@ -26,8 +28,22 @@ namespace FasterRcnnSample.Forms
 
             SessionOptionModes.Items.Add(nameof(SessionOptionMode.Default));
             SessionOptionModes.Items.Add(nameof(SessionOptionMode.Platform));
-            SessionOptionModes.SelectedIndex = 1;
+            SessionOptionModes.SelectedIndex = Device.RuntimePlatform == Device.Android ? 0 : 1;
         }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
+            InitializeAsync().ContinueWith((task) =>
+            {
+                if (task.IsFaulted) MainThread.BeginInvokeOnMainThread(()
+                    => DisplayAlert("Error", task.Exception.Flatten().Message, "OK"));
+            });
+        }
+
+        async Task InitializeAsync(bool warmup = false)
+            => await ObjectDetector.InitializeAsync(warmup ? await GetSampleImageAsync() : null);
 
         async Task AcquireAndAnalyzeImageAsync(ImageAcquisitionMode acquisitionMode = ImageAcquisitionMode.Sample)
         {
@@ -69,7 +85,15 @@ namespace FasterRcnnSample.Forms
                 ShowResult(outputImage);
         }
 
-        Task<byte[]> GetSampleImageAsync() => Task.Run(() =>
+        Task<byte[]> GetSampleImageAsync()
+        {
+            if (_getSampleImageTask == null || _getSampleImageTask.IsFaulted)
+                _getSampleImageTask = GetSampleImageTask();
+
+            return _getSampleImageTask;
+        }
+
+        Task<byte[]> GetSampleImageTask() => Task.Run(() =>
         {
             var assembly = GetType().Assembly;
 

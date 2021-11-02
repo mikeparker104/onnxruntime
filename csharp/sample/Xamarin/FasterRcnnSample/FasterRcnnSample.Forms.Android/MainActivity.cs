@@ -19,9 +19,11 @@ namespace FasterRcnnSample.Forms.Droid
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
 
-            SessionOptionsContainer.Register(
-                nameof(SessionOptionMode.Platform),
-                (sessionOptions) => sessionOptions.AppendExecutionProvider_Nnapi(NnapiFlags.NNAPI_FLAG_USE_NONE));
+            SessionOptionsContainer.Register(nameof(SessionOptionMode.Platform), (sessionOptions) =>
+            {
+                sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                sessionOptions.AppendExecutionProvider_Nnapi(NnapiFlags.NNAPI_FLAG_USE_NONE);
+            });
 
             LoadApplication(new App());
         }

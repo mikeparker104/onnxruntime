@@ -38,24 +38,36 @@ namespace FasterRcnnSample
 
         public Tensor<float> GetTensorForImage(SKBitmap image)
         {
-            var paddedHeight = (int)(Math.Ceiling(image.Height / 32f) * 32f);
-            var paddedWidth = (int)(Math.Ceiling(image.Width / 32f) * 32f);
-
-            Tensor<float> input = new DenseTensor<float>(new[] { 3, paddedHeight, paddedWidth });
+            var bytes = image.GetPixelSpan();
+            var height = image.Height;
+            var width = image.Width;
+            var paddedHeight = (int)(Math.Ceiling(height / 32f) * 32f);
+            var paddedWidth = (int)(Math.Ceiling(width / 32f) * 32f);
             var mean = new[] { 102.9801f, 115.9465f, 122.7717f };
+            var outputLength = paddedHeight * paddedWidth * 3;
+            var input = new float[outputLength];
+            var bytesPerPixel = image.BytesPerPixel;
+            var channelLength = outputLength / 3; 
+            var gOffset = channelLength;
+            var rOffset = channelLength * 2;
 
-            for (int y = paddedHeight - image.Height; y < image.Height; y++)
+            for (int y = paddedHeight - height; y < height; y++)
             {
-                for (int x = paddedWidth - image.Width; x < image.Width; x++)
+                for (int x = paddedWidth - width; x < width; x++)
                 {
-                    var pixel = image.GetPixel(x, y);
-                    input[0, y, x] = pixel.Blue - mean[0];
-                    input[1, y, x] = pixel.Green - mean[1];
-                    input[2, y, x] = pixel.Red - mean[2];
+                    var pixelStartIndex = ((y * width) + x) * bytesPerPixel;
+                    var r = bytes[pixelStartIndex];
+                    var g = bytes[pixelStartIndex + 1];
+                    var b = bytes[pixelStartIndex + 2];
+
+                    var destinationIndex = (y * paddedWidth) + x;
+                    input[destinationIndex] = b - mean[0];
+                    input[destinationIndex + gOffset] = g - mean[1];
+                    input[destinationIndex + rOffset] = r - mean[2];
                 }
             }
 
-            return input;
+            return new DenseTensor<float>(new Memory<float>(input), new[] { 3, paddedHeight, paddedWidth });
         }
 
         public SKBitmap PreprocessSourceImage(byte[] sourceImage)
